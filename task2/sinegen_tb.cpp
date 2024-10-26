@@ -24,14 +24,14 @@ int main(int argc, char **argv, char **env)
     // init Vbuddy
     if (vbdOpen() != 1)
         return (-1);
-    vbdHeader("L2T1: SigGen");
+    vbdHeader("L2T2: SigGen");
     // vbdSetMode(1);        // Flag mode set to one-shot
 
     // initialize simulation inputs
     top->clk = 1;
     top->rst = 0;
     top->en = 1;
-    top->incr = 1;
+    top->offset = 0;
 
     // run simulation for MAX_SIM_CYC clock cycles
     for (simcyc = 0; simcyc < MAX_SIM_CYC; simcyc++)
@@ -44,9 +44,10 @@ int main(int argc, char **argv, char **env)
             top->eval();
         }
 
-        top->incr = vbdValue();
+        top->offset = vbdValue();
         // plot ROM output and print cycle count
-        vbdPlot(int(top->dout), 0, 255);
+        vbdPlot(int(top->dout1), 0, 255);
+        vbdPlot(int(top->dout2), 0, 255);
         vbdCycle(simcyc);
 
         // either simulation finished, or 'q' is pressed

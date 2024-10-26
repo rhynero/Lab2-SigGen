@@ -179,7 +179,7 @@ Now, make the Verilated model and test your signal generator.
 ---
 ### _Test-yourself Challenge_
 
-Modify your design so that you use the **_vbdValue()_** function to chage the frequency of the sinewave generated.
+Modify your design so that you use the **_vbdValue()_** function to change the frequency of the sinewave generated.
 
 *already done with:*
 ```verilog
@@ -200,6 +200,46 @@ To display two waveforms on Vbuddy, you can call the **_vbdPlot()_** function tw
 Test your design.
 
 By setting the offset value to 64, the two waveforms will be exactly 90 degrees apart in their phases, making one a sinewave and the other a cosine wave at the same frequency.  These signals, called "quadrature signals", are often used in communication systems.
+
+*Firstly we create a dual-port ROM that introduces `offset`. Following the example given in the lectures is pretty simple. The offseted address is calculated here...*
+```verilog
+module rom #(
+    parameter   ADDRESS_WIDTH = 8,
+                DATA_WIDTH = 8
+)(
+    input logic                     clk,
+    input logic [ADDRESS_WIDTH-1:0] addr1,
+    input logic [ADDRESS_WIDTH-1:0] offset, //address for offset 
+    output logic [DATA_WIDTH-1:0]   dout1,
+    output logic [DATA_WIDTH-1:0]   dout2 //2nd dout
+);
+
+logic [DATA_WIDTH-1:0] rom_array [2**ADDRESS_WIDTH-1:0];
+
+initial begin
+        $display("Loading rom.");
+        $readmemh("sinerom.mem", rom_array);
+end;
+
+always_ff @(posedge clk) begin
+    //output is synchronous
+    dout1 <= rom_array [addr1];
+    dout2  <= rom_array [offset + addr1];
+    end
+
+endmodule
+
+```
+*Then you must modify the other files accordingly. Extra care must be taken so that the ports and variables are correct and matching your new specification. The testbench file should mostly stay the same except changing names of variables and ports; also changing the display and the value that the rotary encoder changes:*
+
+```verilog
+top->offset = vbdValue();
+        // plot ROM output and print cycle count
+        vbdPlot(int(top->dout1), 0, 255);
+        vbdPlot(int(top->dout2), 0, 255);
+        vbdCycle(simcyc);
+```
+*After compiling and running the executable, you may find that it is hard to how the two waves are phase shifted since the frequency is relatively small. This can be changed by changing how much the counter increments in the `counter.sv` file. Also pretty simple.*
 
 ---
 ## Task 3 - Capture and display audio signal in RAM
